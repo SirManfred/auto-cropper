@@ -19,17 +19,17 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Created: 2024-10-31 with help from Claude.ai
-Version: 1.0.0
+Version: 1.1.0
 """
 
 import os
+import argparse
 from PIL import Image
 import numpy as np
 from pathlib import Path
 
 def get_next_power_of_2(n):
     """Return the next power of 2 that is >= n"""
-    # Convert numpy.int64 to Python int
     n = int(n)
     return 1 if n == 0 else 2 ** (n - 1).bit_length()
 
@@ -56,7 +56,31 @@ def get_content_bounds(im):
     
     return left, top, right + 1, bottom + 1
 
-def process_image(input_path, output_dir):
+def get_max_content_dimensions(png_files):
+    """Calculate the maximum content dimensions across all PNG files"""
+    max_width = 0
+    max_height = 0
+    
+    for file_path in png_files:
+        try:
+            with Image.open(file_path) as im:
+                if im.mode != 'RGBA':
+                    im = im.convert('RGBA')
+                
+                bounds = get_content_bounds(im)
+                if bounds is not None:
+                    left, top, right, bottom = bounds
+                    content_width = right - left
+                    content_height = bottom - top
+                    max_width = max(max_width, content_width)
+                    max_height = max(max_height, content_height)
+                    
+        except Exception as e:
+            print(f"Error processing {file_path} during size calculation: {e}")
+    
+    return max_width, max_height
+
+def process_image(input_path, output_dir, target_width=None, target_height=None):
     """Process a single image"""
     try:
         # Open image
@@ -78,9 +102,9 @@ def process_image(input_path, output_dir):
             content_width = right - left
             content_height = bottom - top
             
-            # Get next power of 2 dimensions that can contain the content
-            new_width = get_next_power_of_2(content_width)
-            new_height = get_next_power_of_2(content_height)
+            # Use target dimensions if provided, otherwise calculate from content
+            new_width = target_width if target_width else get_next_power_of_2(content_width)
+            new_height = target_height if target_height else get_next_power_of_2(content_height)
             
             # Center the content in the new dimensions
             new_left = (new_width - content_width) // 2
@@ -103,6 +127,12 @@ def process_image(input_path, output_dir):
         print(f"Error processing {input_path}: {e}")
 
 def main():
+    # Set up command line arguments
+    parser = argparse.ArgumentParser(description='Crop PNG images to power-of-2 dimensions.')
+    parser.add_argument('--uniform', action='store_true',
+                       help='Make all output images the same size based on the largest content')
+    args = parser.parse_args()
+    
     # Get the directory containing the script
     script_dir = Path(__file__).parent
     
@@ -110,10 +140,22 @@ def main():
     output_dir = script_dir / 'cropped'
     output_dir.mkdir(exist_ok=True)
     
-    # Process all PNG files in the script's directory
-    for file_path in script_dir.glob('*.png'):
-        if file_path.is_file():
-            process_image(file_path, output_dir)
+    # Get list of PNG files
+    png_files = [f for f in script_dir.glob('*.png') if f.is_file()]
+    
+    # If uniform flag is set, calculate target dimensions based on largest content
+    target_width = None
+    target_height = None
+    
+    if args.uniform and png_files:
+        max_width, max_height = get_max_content_dimensions(png_files)
+        target_width = get_next_power_of_2(max_width)
+        target_height = get_next_power_of_2(max_height)
+        print(f"Using uniform size for all images: {target_width}x{target_height}")
+    
+    # Process all PNG files
+    for file_path in png_files:
+        process_image(file_path, output_dir, target_width, target_height)
 
 if __name__ == '__main__':
     main()
