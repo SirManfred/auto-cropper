@@ -57,4 +57,34 @@ Uniform mode:
 - Input2: sprite2.png (512x256 with content only using 434x115 pixels)
 - All outputs: 512x128 (based on largest content dimensions)
 
-[Rest of README remains the same...]
+## Output Format
+
+- All output images maintain their original format (PNG with transparency)
+- Images are cropped to the smallest power-of-2 dimensions that can contain the content
+- Content is centered in the new dimensions
+- Original files are not modified
+
+## Error Handling
+
+- Skips completely transparent images
+- Reports errors for individual files without stopping the batch process
+- Creates the output directory if it doesn't exist
+
+## Limitations
+
+- Only processes PNG files
+- Input images must have transparency (alpha channel)
+- Images without an alpha channel will be converted to RGBA
+
+## Example Power-of-2 Dimensions
+
+Common output dimensions will be:
+- 16x16
+- 32x32
+- 64x64
+- 128x128
+- 256x256
+- 512x512
+etc.
+
+Width and height are calculated independently, so outputs like 256x128 or 512x64 are possible.
