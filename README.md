@@ -23,21 +23,21 @@ pip install Pillow numpy
 ## Usage
 
 1. Place the script in the same directory as your PNG files
-2. Run the script in one of two modes:
+2. Run the script in one of these modes:
 
-Default mode (each image cropped to its own minimum size):
+Individual mode (each image cropped to its own minimum size):
 ```bash
-python cropper.py
+python cropper.py individual
 ```
 
-Uniform size mode (all images cropped to the same size):
+Uniform mode (all images cropped to the same power-of-2 size):
 ```bash
-python cropper.py --uniform
+python cropper.py uniform
 ```
 
-Uniform size mode with power-of-two constraint disabled (closest possible crop):
+Uniform mode with exact sizing (closest possible crop):
 ```bash
-python cropper.py --uniform --nonpow2
+python cropper.py uniform --exact
 ```
 
 The script will:
@@ -48,12 +48,13 @@ The script will:
 
 ## Command Line Arguments
 
-- `--uniform`: Make all output images the same size based on the largest content found in any image
-- `--uniform --nonpow2`: Disable power-of-two constraint for closest possible crop
+- `individual`: Crop each image independently to its own minimum size
+- `uniform`: Make all output images the same size based on the largest content found in any image
+- `uniform --exact`: Use exact dimensions without rounding to power-of-two
 
 ## Example
 
-Default mode:
+Individual mode:
 - Input1: sprite1.png (512x256 with content only using 196x111 pixels)
 - Output1: cropped/sprite1.png (256x128 with centered content)
 - Input2: sprite2.png (512x256 with content only using 434x115 pixels)
@@ -64,7 +65,7 @@ Uniform mode:
 - Input2: sprite2.png (512x256 with content only using 434x115 pixels)
 - All outputs: 512x128 (based on largest content dimensions)
 
-Uniform Non-Pow2 mode:
+Uniform exact mode:
 - Input1: sprite1.png (434x115 with content only using 196x111 pixels)
 - Input2: sprite2.png (434x115 with content only using 434x115 pixels)
 - All outputs: 434x115 (based on largest content dimensions)

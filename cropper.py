@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Created: 2024-10-31 with help from Claude.ai
-Version: 1.1.0
+Version: 1.2.0
 """
 
 import os
@@ -127,12 +127,20 @@ def process_image(input_path, output_dir, target_width=None, target_height=None)
         print(f"Error processing {input_path}: {e}")
 
 def main():
-    # Set up command line arguments
+    # Set up main parser
     parser = argparse.ArgumentParser(description='Crop PNG images to (optional) power-of-2 dimensions.')
-    parser.add_argument('--uniform', action='store_true',
-                       help='Make all output images the same size based on the largest content')
-    parser.add_argument('--nonpow2', action='store_true',
-                   help='Disable power of two constraint')
+    
+    # Create subparsers for different modes
+    subparsers = parser.add_subparsers(dest='mode', help='Cropping mode')
+    
+    # Individual mode (default, no arguments needed)
+    individual_parser = subparsers.add_parser('individual', help='Crop each image independently')
+    
+    # Uniform mode
+    uniform_parser = subparsers.add_parser('uniform', help='Make all output images the same size based on the largest content')
+    uniform_parser.add_argument('--exact', action='store_true',
+                              help='Use exact dimensions instead of rounding to power of 2')
+    
     args = parser.parse_args()
     
     # Get the directory containing the script
@@ -145,20 +153,20 @@ def main():
     # Get list of PNG files
     png_files = [f for f in script_dir.glob('*.png') if f.is_file()]
     
-    # If uniform flag is set, calculate target dimensions based on largest content
+    # Handle different modes
     target_width = None
     target_height = None
     
-    if args.uniform and png_files:
+    if args.mode == 'uniform' and png_files:
         max_width, max_height = get_max_content_dimensions(png_files)
-        if args.nonpow2:
+        if args.exact:
             target_width = max_width
             target_height = max_height
         else:
             target_width = get_next_power_of_2(max_width)
             target_height = get_next_power_of_2(max_height)
             
-        pow2text = "non-power-of-two" if args.nonpow2 else "(power-of-two)"        
+        pow2text = "exact" if args.exact else "(power-of-two)"        
         print(f"Using uniform size {pow2text} for all images: {target_width}x{target_height}")
     
     # Process all PNG files
