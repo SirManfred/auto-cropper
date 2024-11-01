@@ -135,6 +135,8 @@ def main():
     
     # Individual mode (default, no arguments needed)
     individual_parser = subparsers.add_parser('individual', help='Crop each image independently')
+    individual_parser.add_argument('--exact', action='store_true',
+                                 help='Use exact dimensions instead of rounding to power of 2')
     
     # Uniform mode
     uniform_parser = subparsers.add_parser('uniform', help='Make all output images the same size based on the largest content')
@@ -171,7 +173,22 @@ def main():
     
     # Process all PNG files
     for file_path in png_files:
+        if args.mode == 'individual' and args.exact:
+            # For individual exact mode, we need to calculate the content size for each image
+            with Image.open(file_path) as im:
+                if im.mode != 'RGBA':
+                    im = im.convert('RGBA')
+                bounds = get_content_bounds(im)
+                if bounds is not None:
+                    left, top, right, bottom = bounds
+                    target_width = right - left
+                    target_height = bottom - top
+        
         process_image(file_path, output_dir, target_width, target_height)
+        # Reset target dimensions for next file in individual mode
+        if args.mode == 'individual':
+            target_width = None
+            target_height = None
 
 if __name__ == '__main__':
     main()
