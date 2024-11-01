@@ -25,14 +25,14 @@ pip install Pillow numpy
 1. Place the script in the same directory as your PNG files
 2. Run the script in one of these modes:
 
-Individual mode (each image cropped to power-of-2 size):
+Default mode (each image cropped to power-of-2 size):
 ```bash
-python cropper.py individual
+python cropper.py
 ```
 
-Individual mode with exact sizing (closest possible crop for each image):
+Default mode with exact sizing (closest possible crop for each image):
 ```bash
-python cropper.py individual --exact
+python cropper.py --exact
 ```
 
 Uniform mode (all images cropped to the same power-of-2 size):
@@ -53,14 +53,14 @@ The script will:
 
 ## Command Line Arguments
 
-- `individual`: Crop each image independently to its own minimum size
-- `individual --exact`: Crop each image to its exact content size without rounding to power-of-two
+- Default (no argument): Crop each image independently to its own minimum power-of-2 size
+- `--exact`: Crop each image to its exact content size without rounding to power-of-two
 - `uniform`: Make all output images the same size based on the largest content found in any image
-- `uniform --exact`: Use exact dimensions without rounding to power-of-two
+- `uniform --exact`: Make all output images the same exact size based on largest content
 
 ## Example
 
-Individual mode:
+Default mode:
 - Input1: sprite1.png (512x256 with content only using 196x111 pixels)
 - Output1: cropped/sprite1.png (256x128 with centered content)
 - Input2: sprite2.png (512x256 with content only using 434x115 pixels)

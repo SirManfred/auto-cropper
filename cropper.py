@@ -19,7 +19,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 Created: 2024-10-31 with help from Claude.ai
-Version: 1.2.0
+Version: 1.2.1
 """
 
 import os
@@ -130,13 +130,12 @@ def main():
     # Set up main parser
     parser = argparse.ArgumentParser(description='Crop PNG images to (optional) power-of-2 dimensions.')
     
+    # Add exact flag to main parser for default (individual) mode
+    parser.add_argument('--exact', action='store_true',
+                       help='Use exact dimensions instead of rounding to power of 2')
+    
     # Create subparsers for different modes
     subparsers = parser.add_subparsers(dest='mode', help='Cropping mode')
-    
-    # Individual mode (default, no arguments needed)
-    individual_parser = subparsers.add_parser('individual', help='Crop each image independently')
-    individual_parser.add_argument('--exact', action='store_true',
-                                 help='Use exact dimensions instead of rounding to power of 2')
     
     # Uniform mode
     uniform_parser = subparsers.add_parser('uniform', help='Make all output images the same size based on the largest content')
@@ -173,7 +172,7 @@ def main():
     
     # Process all PNG files
     for file_path in png_files:
-        if args.mode == 'individual' and args.exact:
+        if args.mode != 'uniform' and args.exact:
             # For individual exact mode, we need to calculate the content size for each image
             with Image.open(file_path) as im:
                 if im.mode != 'RGBA':
@@ -186,7 +185,7 @@ def main():
         
         process_image(file_path, output_dir, target_width, target_height)
         # Reset target dimensions for next file in individual mode
-        if args.mode == 'individual':
+        if args.mode != 'uniform':
             target_width = None
             target_height = None
 
