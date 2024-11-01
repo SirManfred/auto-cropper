@@ -1,7 +1,7 @@
 """
 PNG Power-of-2 Cropper
 A script that processes PNG images with transparency, automatically cropping them 
-to the smallest power-of-2 dimensions that can contain the non-transparent content.
+to the smallest power-of-2 (optional) dimensions that can contain the non-transparent content.
 
 Copyright (C) 2024 Frederik Sjölund
 
@@ -128,9 +128,11 @@ def process_image(input_path, output_dir, target_width=None, target_height=None)
 
 def main():
     # Set up command line arguments
-    parser = argparse.ArgumentParser(description='Crop PNG images to power-of-2 dimensions.')
+    parser = argparse.ArgumentParser(description='Crop PNG images to (optional) power-of-2 dimensions.')
     parser.add_argument('--uniform', action='store_true',
                        help='Make all output images the same size based on the largest content')
+    parser.add_argument('--nonpow2', action='store_true',
+                   help='Disable power of two constraint')
     args = parser.parse_args()
     
     # Get the directory containing the script
@@ -149,9 +151,15 @@ def main():
     
     if args.uniform and png_files:
         max_width, max_height = get_max_content_dimensions(png_files)
-        target_width = get_next_power_of_2(max_width)
-        target_height = get_next_power_of_2(max_height)
-        print(f"Using uniform size for all images: {target_width}x{target_height}")
+        if args.nonpow2:
+            target_width = max_width
+            target_height = max_height
+        else:
+            target_width = get_next_power_of_2(max_width)
+            target_height = get_next_power_of_2(max_height)
+            
+        pow2text = "non-power-of-two" if args.nonpow2 else "(power-of-two)"        
+        print(f"Using uniform size {pow2text} for all images: {target_width}x{target_height}")
     
     # Process all PNG files
     for file_path in png_files:
